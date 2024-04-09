@@ -1,0 +1,172 @@
+/*
+ * GccApplication5.c
+ * Created: 02.04.2024 11:00:10
+ * Author : dspproject
+	Se transmite un byte.
+ */ 
+
+#define F_CPU 14745600UL
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdint.h>
+#include <avr/iom16.h>
+#include <avr/interrupt.h>
+
+#define FOSC 14745600UL// Clock Speed
+#define BAUD 9600
+#define MYUBRR FOSC/16/BAUD-1
+
+void USART_Init(unsigned int ubrr)
+{
+      UCSRC &= ~(1<<URSEL);
+      UBRRH = (unsigned char)(ubrr>>8);
+      UBRRL = (unsigned char)ubrr;
+      UCSRA &= ~(1 << UDRE);
+      UCSRB = (1 <<TXEN) | (1 << RXEN);
+      UCSRC = (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
+}
+
+void USART_Transmit(unsigned char data)
+{
+      while (!(UCSRA & (1<<UDRE)));
+      UDR = data;
+}
+
+
+int main(void){
+      DDRD |= (1 << 1);
+      DDRD &= ~(1 << 0);
+      USART_Init (MYUBRR);
+      while (1){
+             USART_Transmit('c');
+             _delay_ms(200);
+      }
+}
+
+
+
+/*
+ * GccApplication2.c
+ * Created: 08.04.2024 11:36:55
+ * Author : dspproject
+	Se transmite un caracter (un byte) si se primeste.
+ */ 
+
+#define F_CPU 14745600UL
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdint.h>
+#include <avr/iom16.h>
+#include <avr/interrupt.h>
+#include <string.h>
+
+#define FOSC 14745600UL// Clock Speed
+#define BAUD 9600
+#define MYUBRR FOSC/16/BAUD-1
+
+void USART_Init(unsigned int ubrr)
+{
+      UCSRC &= ~(1<<URSEL);
+      UBRRH = (unsigned char)(ubrr>>8);
+      UBRRL = (unsigned char)ubrr;
+      UCSRA &= ~(1 << UDRE);
+      UCSRB = (1 <<TXEN) | (1 << RXEN);
+      UCSRC = (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
+}
+
+void USART_Transmit(unsigned char data)
+{
+      while (!(UCSRA & (1<<UDRE)));
+      UDR = data;
+}
+
+unsigned char USART_Receive()
+{
+      while(!(UCSRA & (1<<RXC)));
+      return UDR;
+}
+
+int main(void){
+      DDRD |= (1 << 1);
+      DDRD &= ~(1 << 0);
+      USART_Init (MYUBRR);
+      while (1)
+      {
+      
+            unsigned char a = USART_Receive();
+            //_delay_ms(200);
+            USART_Transmit(a);
+            _delay_ms(200);
+      }
+}
+
+
+/*
+ * GccApplication2.c
+ * Created: 08.04.2024 11:36:55
+ * Author : dspproject
+	Se transmite un string si se primeste.
+ */ 
+
+#define F_CPU 14745600UL
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdint.h>
+#include <avr/iom16.h>
+#include <avr/interrupt.h>
+#include <string.h>
+#include <stdint.h>
+
+#define FOSC 14745600UL// Clock Speed
+#define BAUD 9600
+#define MYUBRR FOSC/16/BAUD-1
+
+void USART_Init(unsigned int ubrr)
+{
+      UCSRC &= ~(1<<URSEL);
+      UBRRH = (unsigned char)(ubrr>>8);
+      UBRRL = (unsigned char)ubrr;
+      UCSRA &= ~(1 << UDRE);
+      UCSRB = (1 <<TXEN) | (1 << RXEN);
+      UCSRC = (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
+}
+
+void USART_Transmit(unsigned char data)
+{
+      while (!(UCSRA & (1<<UDRE)));
+      UDR = data;
+}
+
+unsigned char USART_Receive()
+{
+      while(!(UCSRA & (1<<RXC)));
+      return UDR;
+}
+
+void SendString(char *string)
+{
+      for(int i = 0; i<strlen(string); i++)
+      {
+            USART_Transmit(string[i]);
+            _delay_ms(200);
+      }
+}
+
+int main(void){
+      DDRD |= (1 << 1);
+      DDRD &= ~(1 << 0);
+      USART_Init (MYUBRR);
+      
+      char text[100];
+      uint32_t counter = 0;
+      while (1)
+      {
+            sprintf(text, "melc %d\n", counter);      
+            counter++;
+            _delay_ms(200);
+            SendString(text);
+      }
+}
