@@ -1,0 +1,47 @@
+#include<lpc214x.h>
+
+
+void myISR (void) __irq
+{
+      static int ok = 0;
+      
+      if(ok == 0)
+            IO1SET = 0xffffffff;
+      else
+            IO1CLR = 0xffffffff;
+      
+      ok = 1 - ok;
+                  T0IR |= 1;
+                  VICVectAddr = 0;
+}
+
+void interrupt_config()
+{
+      VICIntEnable |= (1<<4) ;
+      VICVectCntl0 = (1<<5) | 4 ;
+      VICVectAddr0 = (unsigned) myISR;
+}
+
+void timer_delay()
+{
+      T0TCR = 0x02; //reset timer
+      
+      T0IR = 0x01;
+      T0CTCR = 0x00; //timer mode: increment at posedge
+      T0MR0 = 7500000; //1sec delay
+      T0MCR = 0x03;
+      
+      T0TCR = 0x01; //enable timer
+      
+}
+
+int main()
+{
+      IO1DIR = 0xffffffff;
+      PINSEL0 = 0x0020;
+      interrupt_config();
+                  timer_delay();
+      
+      while(1);
+      return 0;
+}

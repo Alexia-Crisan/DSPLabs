@@ -1,0 +1,47 @@
+#include <lpc214x.h>
+#include <string.h>
+
+void UART_init()
+{
+      PINSEL0 = 0x05; //UART0 -> TX & RX
+      U0LCR = 0x83;
+      U0DLM = 0x00;
+      U0DLL = 8; 
+      U0LCR = 0x03;
+}
+
+unsigned char UART_RX()
+{
+      while( (U0LSR & 0x1) == 0);
+      return U0RBR;
+}
+
+void UART_TX(char c)
+{
+            
+      while( (U0LSR & 0x20) == 0);
+      U0THR = c;
+}
+
+void UART_string(char* string)
+{
+      int i;
+      for(i=0; i<strlen(string); i++)
+            UART_TX(string[i]);
+}
+
+int main()
+{
+      volatile unsigned int i = 0;
+      UART_init();
+      
+  while(1)
+      {
+            char c = UART_RX();
+            UART_TX(c);
+            //UART_string("melc\n");
+            for(i = 0; i < 100000; i++);
+      }
+            
+  return 0;
+}
